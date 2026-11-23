@@ -1,102 +1,42 @@
 ---
 name: china-expense-ledger
-description: Keep a small China-based company's expense ledger, receipt files and receipt links consistent so a bookkeeper can reconcile them. Use when adding expense rows, naming/filing receipts, or auditing the ledger.
+description: Audit and maintain a China-based company's multi-currency expense ledger and mirrored receipt files.
 ---
 
-# China Expense Ledger: Format and Naming
+# China Expense Ledger: Maintenance
 
-## Why this exists
+Keep the ledger row, original receipt PDF and cloud link consistent for each expense. Follow the owner's current instructions and inspect the live ledger before relying on a template or historical row numbers.
 
-A small company operating in the Chinese market has to hand its expenses to a local bookkeeper or finance manager. That person needs three things to agree for every expense: a **ledger row**, a **receipt file**, and a **link** from the row to the file. Expenses come from many vendors, in USD and RMB, paid by different methods. If rows, filenames and links drift apart, reconciliation becomes slow and error-prone.
+## Audit and approval
 
-This skill defines one fixed format so any person or AI produces the same result every time.
+Read the full sheet: headers, data rows, monthly subtotals, spacers, totals, formulas, text and links. Match receipts by invoice or order ID; matching dates and amounts alone do not prove duplicates. Propose specific changes, with old and new values, and obtain approval before ledger writes unless the owner has already approved the specific work.
 
-## Rules for the AI
+Never invent a date, amount, rate, payment method or invoice number. Leave unknowns blank and flag them. Open each original PDF and match the vendor, invoice ID, date and amount before linking. A working URL alone does not establish that a receipt matches. Keep invoice IDs as text; verify digits against source documents before converting existing numeric cells.
 
-1. Follow this format exactly. Do not invent columns, folders or naming schemes. Ask before changing anything.
-2. Never guess missing information (amount, date, payment method, invoice number). Leave it empty and ask.
-3. Never permanently delete. Move replaced files to a trash or `_replaced/` folder.
-4. Do not edit historical entries that the finance manager has already reviewed. Apply the format to new entries.
-5. Use only the real receipt or invoice. Never use a screenshot, cart page, confirmation email or AI-rebuilt document as the receipt. If only a stand-in exists, say so and ask for the real one.
+## Currency and totals
 
-## The three matching pieces
+- Record the currency and amount actually charged. Retain any different invoice face currency as supporting detail, without counting the transaction twice.
+- Convert foreign-currency expenses to RMB at the invoice-date daily mid-rate; for a weekend use the previous business day. Record the source, currency pair, effective date and retrieval date. If the rate cannot be verified, leave it blank and explicitly flag any totals that exclude the expense.
+- Show original-currency totals separately by currency; never add unlike units. Check each currency's converted RMB total and the grand total.
+- Use currency-aware formats: for example, USD $, HKD HK$, RMB ¥. Do not apply a universal dollar symbol.
+- Record genuinely paid charges. Do not add cancelled items, free orders or credit notes as new spending; investigate refunds and reconcile them against the original payment.
 
-| Piece | Description |
-|---|---|
-| Ledger row | One row per expense in the shared spreadsheet |
-| Receipt file | PDF stored in `receipts/YYYY-MM/<Vendor>/` |
-| Receipt link | Spreadsheet cell linking to the same file in cloud storage |
+## Structure and formatting
 
-All three must agree on date, vendor, amount and invoice number.
+Inspect the live sheet first. Its historical arrangement uses A Date, B Vendor, C Description, D Category, E Currency, F Amount, G exchange rate, H RMB, I Payment Method, J Invoice/Receipt No., K legacy link, L receipt link and M Remark. Column names, positions and totals may change; verify them before editing. Ask before restructuring unless expressly authorized.
 
-## Ledger columns
+Insert rows bottom-up. Recheck monthly subtotal ranges, grand-total formulas and links when rows move. Verify that label-based subtotal formulas cover the intended rows and count each subtotal once. Apply values, formulas, totals and formatting in dependency order, then read back and verify the saved results.
 
-| Col | Name | Notes |
-|---|---|---|
-| A | Date | Date on the invoice or receipt |
-| B | Vendor | Vendor name |
-| C | Description | What was bought |
-| D | Category | Company expense category |
-| E | Currency | `USD` or `RMB` |
-| F | Original Amount | Amount as charged |
-| G | FX Rate (USD/CNY) | USD rows only; market close on the charge date (previous business day for weekends) |
-| H | Amount (RMB) | USD rows: `F x G`. RMB rows: `F` |
-| I | Payment Method | Card, wallet or `Company invoice`. Add ` (reimbursable)` tag if applicable. Empty if unknown |
-| J | Invoice/Receipt No. | Exactly as printed; store as text |
-| K | Legacy link | Not used for new rows |
-| L | Receipt link | `=HYPERLINK("<file URL>","<filename>")` |
-| M | Remark | Only for refunds or notes that affect an existing charge |
+Use consistent fonts, real dates and readable formatting. Headers and subtotal bars may be bold; retain meaningful fills and borders. Align amounts right and text left and wrap as needed. Remarks record FX basis, source and unresolved issues. Some spreadsheet APIs reset omitted style properties; verify behavior and pass a complete format specification when necessary. Do not assume this applies to every tool.
 
-- One subtotal row per month: `SUM` of that month's column H. Never write into subtotal rows.
-- No duplicate invoice numbers.
-- Credit notes, cancelled items and fully refunded charges do **not** get a row.
+## Receipt filing and backup
 
-## File naming
+Use the original receipt or invoice PDF, not a reconstructed receipt. When only a confirmation or screenshot exists, identify it accurately as supporting evidence and flag the missing original.
 
-```
-YYYY-MM-DD_Vendor_AmountCurrency.pdf
-```
+Mirror receipt files locally and in cloud storage under `receipts/YYYY-MM/<Vendor>/`; use the existing naming convention, generally `YYYY-MM-DD_Vendor_AmountCurrency.pdf`, with invoice ID or a suffix where necessary to distinguish same-day transactions. Respect existing folder and file names. Link the matching cloud PDF in the ledger; confirm that the link actually opens the right file. Do not upload duplicates, permanently delete files or silently replace reviewed historical entries.
 
-Examples: `2026-10-11_VendorA_45.00USD.pdf`, `2026-08-17_VendorB_640.00RMB.pdf`.
+After authorized changes, export and verify an updated dated Excel backup in the owner's designated expense folder. Report any export or access blocker.
 
-- Some vendors also append the invoice or order number:
-  `2026-09-27_VendorC_14.99USD_30938692.pdf`.
-- Same vendor, same day, same amount: add `_a`, `_b`, `_c`.
-- The link text in column L equals the filename.
-- Renaming or moving a cloud file keeps its URL; update the link text after renaming.
+## Close-out
 
-## Folder layout
-
-```
-receipts/
-  YYYY-MM/
-    VendorName/
-      YYYY-MM-DD_VendorName_AmountCurrency.pdf
-```
-
-Mirror this layout in local storage and in cloud storage.
-
-## Filing a new expense
-
-1. Get the real invoice or receipt (PDF).
-2. Rename it to the standard.
-3. Put it in `receipts/YYYY-MM/<Vendor>/` locally.
-4. Upload the same file to the mirrored cloud folder and copy its URL.
-5. Add the ledger row (columns A to J), then the link in L.
-6. Check the row against the audit list.
-
-## Replacing a file
-
-Move the old file to trash first, upload the new one, then update the link in column L.
-
-## Audit checklist
-
-1. `H = F x G` on every USD row; subtotals and grand total correct.
-2. Every row has an invoice number and a working receipt link.
-3. Link text equals the filename.
-4. Date and amount match the receipt; FX rate matches the charge date.
-5. Local file, cloud file and ledger row agree.
-6. The receipt is a real document, not a screenshot or rebuild.
-7. Invoice buyer name and tax ID match the company, where an invoice is issued to the company.
-
-Report findings as a short plain list, most important first. Fix only what the owner approves, except mistakes you made yourself.
+Report briefly what changed, what was verified and what remains open, including missing receipts, payment methods, rates, invoice IDs, mismatched buyer details or incomplete backups. Source: owner's expense workflow and supplied Tencent AI summary, 2026-11-23.
